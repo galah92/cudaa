@@ -7,16 +7,23 @@ __global__ void add(int n, float *x, float *y) {
   }
 }
 
-int main() {
-  int deviceCount;
-  cudaGetDeviceCount(&deviceCount);
-
-  cudaDeviceProp deviceProp;
-  for (int i = 0; i < deviceCount; i++) {
-    cudaGetDeviceProperties(&deviceProp, i);
-    fmt::println("Device {}: {}", i, deviceProp.name);
+__global__ void add_block(int n, float *x, float *y) {
+  int index = threadIdx.x;
+  int stride = blockDim.x;
+  for (int i = index; i < n; i += stride) {
+    y[i] = x[i] + y[i];
   }
+}
 
+__global__ void add_grid(int n, float *x, float *y) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int i = index; i < n; i += stride) {
+    y[i] = x[i] + y[i];
+  }
+}
+
+int main() {
   int N = 1 << 20;
   float *x, *y;
 
@@ -30,22 +37,24 @@ int main() {
     y[i] = 2.0f;
   }
 
-  fmt::println("Running kernel with {} elements", N);
+  // cudaMemPrefetchAsync(x, N * sizeof(float), 0, 0);
+  // cudaMemPrefetchAsync(y, N * sizeof(float), 0, 0);
+
+  // int blockSize = 256;
+  // int numBlocks = (N + blockSize - 1) / blockSize;
+  // add_grid<<<numBlocks, blockSize>>>(N, x, y);
   add<<<1, 1>>>(N, x, y);
 
   // Wait for GPU to finish before accessing on host
   cudaDeviceSynchronize();
 
   // Check for errors (all values should be 3)
-  int maxError = 0;
+  float maxError = 0.0f;
   for (int i = 0; i < N; i++) {
     maxError = fmax(maxError, fabs(y[i] - 3.0f));
   }
   fmt::println("Max error: {}", maxError);
 
-  // Free memory
   cudaFree(x);
   cudaFree(y);
-
-  return 0;
 }

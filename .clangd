@@ -1,0 +1,5 @@
+CompileFlags:
+  Remove:
+    # https://github.com/clangd/clangd/issues/1142#issuecomment-1212808885
+    - -forward-unknown-to-host-compiler
+    - --generate-code*

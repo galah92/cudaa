@@ -1,1 +1,3 @@
 build/
+.cache/
+nsys_easy*
