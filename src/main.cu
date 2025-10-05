@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cuda_runtime.h>
 #include <fmt/base.h>
 
@@ -24,7 +25,7 @@ __global__ void add_grid(int n, float *x, float *y) {
 }
 
 int main() {
-  int N = 1 << 20;
+  constexpr int N = 1 << 20;
   float *x, *y;
 
   // Allocate Unified Memory – accessible from CPU or GPU
@@ -37,16 +38,22 @@ int main() {
     y[i] = 2.0f;
   }
 
-  // cudaMemPrefetchAsync(x, N * sizeof(float), 0, 0);
-  // cudaMemPrefetchAsync(y, N * sizeof(float), 0, 0);
+  cudaMemPrefetchAsync(x, N * sizeof(float), 0, 0);
+  cudaMemPrefetchAsync(y, N * sizeof(float), 0, 0);
 
-  // int blockSize = 256;
-  // int numBlocks = (N + blockSize - 1) / blockSize;
-  // add_grid<<<numBlocks, blockSize>>>(N, x, y);
-  add<<<1, 1>>>(N, x, y);
+  const auto start_time = std::chrono::high_resolution_clock::now();
+
+  int blockSize = 256;
+  int numBlocks = (N + blockSize - 1) / blockSize;
+  add_grid<<<numBlocks, blockSize>>>(N, x, y);
+  // add<<<1, 1>>>(N, x, y);
 
   // Wait for GPU to finish before accessing on host
   cudaDeviceSynchronize();
+
+  const auto end_time = std::chrono::high_resolution_clock::now();
+  const std::chrono::duration<float> duration = end_time - start_time;
+  fmt::println("Time to add {} elements: {}s", N, duration.count());
 
   // Check for errors (all values should be 3)
   float maxError = 0.0f;

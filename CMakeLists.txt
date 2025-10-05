@@ -27,3 +27,6 @@ find_package(CUDAToolkit REQUIRED)
 
 add_executable(cudaa src/main.cu)
 target_link_libraries(cudaa PRIVATE fmt::fmt)
+
+add_executable(raytracing src/raytracing.cu)
+target_link_libraries(raytracing PRIVATE fmt::fmt)
