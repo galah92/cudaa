@@ -30,3 +30,6 @@ target_link_libraries(cudaa PRIVATE fmt::fmt)
 
 add_executable(raytracing src/raytracing.cu)
 target_link_libraries(raytracing PRIVATE fmt::fmt)
+
+add_executable(sgemm src/sgemm.cu)
+target_link_libraries(sgemm PRIVATE fmt::fmt)
