@@ -33,8 +33,8 @@ __global__ void sgemm_coalesce(int M, int N, int K, float alpha, const float *A,
 
 template <const int BLOCKSIZE>
 __global__ void sgemm_shared_mem(int M, int N, int K, float alpha,
-                                       const float *A, const float *B,
-                                       float beta, float *C) {
+                                 const float *A, const float *B, float beta,
+                                 float *C) {
   // the output block that we want to compute in this threadblock
   const uint cRow = blockIdx.x;
   const uint cCol = blockIdx.y;
@@ -121,9 +121,10 @@ int main() {
     cudaMemPrefetchAsync(B, K * N * sizeof(float), 0, 0);
     cudaMemPrefetchAsync(C, M * N * sizeof(float), 0, 0);
 
-    const auto blockSize = 16;
-    const dim3 blockDim(blockSize, blockSize);
-    const dim3 gridDim(ceil_div(M, blockSize), ceil_div(N, blockSize));
+    const auto blockSize = 32;
+    dim3 blockDim = dim3(blockSize, blockSize);
+    dim3 gridDim = dim3(ceil_div(M, blockSize), ceil_div(N, blockSize));
+
     const auto kernel = kernels[kernel_idx];
 
     const auto repeats = 50;
