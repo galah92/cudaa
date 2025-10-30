@@ -38,8 +38,12 @@ int main() {
     y[i] = 2.0f;
   }
 
-  cudaMemPrefetchAsync(x, N * sizeof(float), 0, 0);
-  cudaMemPrefetchAsync(y, N * sizeof(float), 0, 0);
+  // Prefetch to GPU device 0
+  cudaMemLocation location = {};
+  location.type = cudaMemLocationTypeDevice;
+  location.id = 0;
+  cudaMemPrefetchAsync(x, N * sizeof(float), location, 0);
+  cudaMemPrefetchAsync(y, N * sizeof(float), location, 0);
 
   const auto start_time = std::chrono::high_resolution_clock::now();
 

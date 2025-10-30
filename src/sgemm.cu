@@ -117,9 +117,13 @@ int main() {
     rand_matrix(K, N, B);
     rand_matrix(M, N, C);
 
-    cudaMemPrefetchAsync(A, M * K * sizeof(float), 0, 0);
-    cudaMemPrefetchAsync(B, K * N * sizeof(float), 0, 0);
-    cudaMemPrefetchAsync(C, M * N * sizeof(float), 0, 0);
+    // Prefetch to GPU device 0
+    cudaMemLocation location = {};
+    location.type = cudaMemLocationTypeDevice;
+    location.id = 0;
+    cudaMemPrefetchAsync(A, M * K * sizeof(float), location, 0);
+    cudaMemPrefetchAsync(B, K * N * sizeof(float), location, 0);
+    cudaMemPrefetchAsync(C, M * N * sizeof(float), location, 0);
 
     const auto blockSize = 32;
     dim3 blockDim = dim3(blockSize, blockSize);
